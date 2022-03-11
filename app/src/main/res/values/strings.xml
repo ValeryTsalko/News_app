@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">My news app</string>
+    <string name="news_filter_science">science</string>
+    <string name="news_filter_sports">sports</string>
+    <string name="news_filter_health">health</string>
+    <string name="news_filter_general">general</string>
+    <string name="news_filter_business">business</string>
+
+    //toolBar
+    <string name="tool_bar_news">News</string>
+    <string name="tool_bar_source">Source</string>
+    <string name="tool_bar_favorite">Favorite</string>
+
+
+</resources>

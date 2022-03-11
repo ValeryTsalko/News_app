@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+    <CheckBox
+            android:id="@+id/spinner_checkBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"/>
+
+    <TextView
+            android:id="@+id/source_name"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="source_name"
+            android:gravity="center"
+            android:layout_marginStart="45dp"/>
+
+
+</LinearLayout>
