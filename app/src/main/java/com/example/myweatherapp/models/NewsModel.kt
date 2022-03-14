@@ -1,6 +1,7 @@
 package com.example.myweatherapp.models
 
 import com.example.myweatherapp.interfaces.IListItem
+import java.time.OffsetDateTime
 
 data class NewsModel(
    val newsSource: Source,
@@ -9,7 +10,7 @@ data class NewsModel(
    val newsDescription: String,
    val newsUrl: String,
    val newsUrlToImage: String,
-   val newsPublishedAt: String,
+   val newsPublishedAt: OffsetDateTime,
    val newsContent: String,
-): IListItem
+): IListItem()
 

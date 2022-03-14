@@ -13,10 +13,23 @@ import com.example.myweatherapp.viewHolders.SourceHolder
 
 open class NewsAdapter(private val newsListener: OnItemClickListener, private val sourceListener: OnSourceClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var newsList = emptyList<IListItem>()
+    var newsList = mutableListOf<IListItem>()
 
-    internal fun setData(items: List<IListItem>) { //???
-        newsList = items
+    var favoriteUrlList = mutableListOf<String>()
+
+    fun updateUrlList (list: Set<String>){ //
+        favoriteUrlList.apply {
+            clear()
+            addAll(list)
+        }
+        notifyDataSetChanged()
+    }
+
+    internal fun setData(items: List<IListItem>) { // метод заполянет список новыми данными
+        newsList.apply {
+            clear()
+            addAll(items)
+        }
         notifyDataSetChanged()
     }
 
@@ -45,7 +58,7 @@ open class NewsAdapter(private val newsListener: OnItemClickListener, private va
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is NewsHolder -> holder.bind(newsList[position] as NewsModel)
+            is NewsHolder -> holder.bind(newsList[position] as NewsModel, favoriteUrlList)
             is SourceHolder -> holder.bind(newsList[position] as SourceModel)
         }
     }

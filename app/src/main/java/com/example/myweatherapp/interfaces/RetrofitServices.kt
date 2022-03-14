@@ -9,7 +9,9 @@ import retrofit2.http.Query
 
 interface RetrofitServices {
     @GET("everything")
-    fun getNewsList(@Query("apiKey") apiKey: String, @Query("q") device: String): Call<NewsRoot>
+    fun getNewsList(@Query("apiKey") apiKey: String,
+                    @Query("q") device: String
+    ): Call<NewsRoot>
 
     @GET("top-headlines/sources")
     fun getSourceList(

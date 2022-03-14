@@ -13,6 +13,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
+import java.time.OffsetDateTime
 
 class NewsRepository {
 
@@ -76,7 +77,7 @@ class NewsRepository {
                             newsDescription = article.description,
                             newsUrl = article.url,
                             newsUrlToImage = article.urlToImage,
-                            newsPublishedAt = article.publishedAt,
+                            newsPublishedAt = OffsetDateTime.parse(article.publishedAt) ,
                             newsContent = article.content
                         )
                     }

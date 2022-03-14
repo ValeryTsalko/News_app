@@ -1,3 +1,3 @@
 package com.example.myweatherapp.interfaces
 
-interface IListItem
+open class IListItem
