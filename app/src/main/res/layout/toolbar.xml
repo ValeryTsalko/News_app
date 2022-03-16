@@ -22,26 +22,30 @@
 
 
     <ImageView
-            android:id="@+id/imageView2"
+            android:id="@+id/searchNews"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:src="@drawable/filter"
+            android:src="@drawable/search"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/guideline4"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.529"
+            app:layout_constraintStart_toEndOf="@+id/search_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
+            tools:visibility="visible"/>
 
     <Spinner
             android:id="@+id/search_icon"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/imageView2"
-            app:layout_constraintTop_toTopOf="parent"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:src="@drawable/search"
-            />
+            android:background="@drawable/filter"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guideline4"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
+            tools:visibility="visible"/>
 
     <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline4"

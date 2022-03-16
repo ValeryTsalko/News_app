@@ -63,7 +63,7 @@ class NewsRepository {
         val call = retrofitService.getNewsList(
             // создаем объект call и делаем его типа retrofitService и вызываем метод интерфейса getNewsList
             apiKey = BuildConfig.API_KEY,
-            device = "Apple",
+            device = "q"
         )
 
         call.enqueue(object : Callback<NewsRoot> {

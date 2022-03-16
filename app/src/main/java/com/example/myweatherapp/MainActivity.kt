@@ -31,9 +31,8 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
     private lateinit var binding: ActivityMainBinding
     private val newsAdapter = NewsAdapter(this, this)
-    private val repository = NewsRepository()
+    private lateinit var repository : NewsRepository
     private val favoriteAdapter = FavoriteAdapter(this)
-    private lateinit var newsRepository: NewsRepository
     private val searchAdapter by lazy {
         ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, mutableListOf()).apply {
             setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item)
@@ -48,20 +47,20 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        newsRepository = NewsRepository()
+        repository = NewsRepository()
 
-        binding.progressBar.progressBar.show()
+        binding.progressBar.root.show()
 
         sharedPreferences = getSharedPreferences("Url", MODE_PRIVATE)
 
 
 
-        newsRepository.getNews { list ->
+        repository.getNews { list ->
             if (list != null) {
                 newsAdapter.updateUrlList(getFavoriteUrlList())
                 newsAdapter.setData(list)  // получение данные с сервера
                 Log.d("TAG", "Started")
-                binding.progressBar.progressBar.hide()
+                binding.progressBar.root.hide()
             } else {
                 Log.d("TAG", "Some Error")
             }
@@ -77,12 +76,12 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val category = searchAdapter.getItem(position)
-                binding.progressBar.progressBar.show()// в переменную category записываем позицию типа int
+                binding.progressBar.root.show()// в переменную category записываем позицию типа int
                 repository.getSource(category) { list ->
                     if (list != null) {
                         newsAdapter.setData(list)
                         Log.d("TAG", "GETTING SORTED SOURCE DATA")
-                        binding.progressBar.progressBar.hide()
+                        binding.progressBar.root.hide()
                     } else {
                         Log.d("TAG", "Some ERROR")
                     }
@@ -104,7 +103,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             false
         }
 
-        binding.toolbar.editTextIcon?.setOnClickListener {
+        binding.toolbar.searchNews?.setOnClickListener {
 
             binding.editText.editText.show()
 
@@ -140,17 +139,23 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         binding.bottomNV.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.item1 -> {
+                    binding.toolbar.searchNews.hide()
+                    binding.toolbar.searchIcon.hide()
                     binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_news)
                     loadNewsData()
                     true
                 }
                 R.id.item2 -> {
+                    binding.toolbar.searchNews.show()
+                    binding.toolbar.searchIcon.show()
                     binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_source)
                     loadSourceData()
                     true
 
                 }
                 R.id.item3 -> {
+                    binding.toolbar.searchNews.hide()
+                    binding.toolbar.searchIcon.hide()
                     binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_favorite)
                     loadFavoriteList()
                     true
@@ -161,14 +166,14 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
     }
 
     private fun loadNewsData() {
-        binding.progressBar.progressBar.show()
+        binding.progressBar.root.show()
         binding.recyclerViewNews.adapter = newsAdapter
         return repository.getNews { list ->
             if (list != null) {
                 newsAdapter.updateUrlList(getFavoriteUrlList())
                 newsAdapter.setData(list)
                 Log.d("TAG", "GETTING NEWS DATA")
-                binding.progressBar.progressBar.hide()
+                binding.progressBar.root.hide()
             } else {
                 Log.d("TAG", "SOME ERROR")
             }
@@ -177,7 +182,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
     private fun loadSourceData() {
 
-        binding.progressBar.progressBar.show()
+        binding.progressBar.root.show()
         binding.recyclerViewNews.adapter = newsAdapter
 
         return repository.getSource { list ->
@@ -189,7 +194,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                 searchAdapter.addAll(spinnerList)
 
                 Log.d("TAG", "GETTING SOURCE DATA")
-                binding.progressBar.progressBar.hide()
+                binding.progressBar.root.hide()
             } else {
                 Log.d("TAG", "Some ERROR")
             }
@@ -197,7 +202,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
     }
 
     private fun loadFavoriteList() {
-        binding.progressBar.progressBar.show()
+        binding.progressBar.root.show()
         return repository.getNews { list ->
             if (list != null) {
                 val filteredList = mutableListOf<NewsModel>()
@@ -214,7 +219,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                 favoriteAdapter.updateUrlList(getFavoriteUrlList().toList())
                 binding.recyclerViewNews.adapter = favoriteAdapter
                 Log.d("TAG", "GETTING NEWS DATA")
-                binding.progressBar.progressBar.hide()
+                binding.progressBar.root.hide()
             } else {
                 Log.d("TAG", "SOME ERROR")
             }
@@ -236,9 +241,9 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
         Log.d("TAG", "$sharedPreferences")
         sharedPreferences?.edit()?.let { editor ->
-            if (keySet.isNullOrEmpty()) {                               // проверка при запуске вкладки -> если список пуст
+            if (keySet.isNullOrEmpty()) {
                 editor.putStringSet(KEY_URL, setOf(url))
-            } else {                                                    // если ->
+            } else {
                 mutableKeySet.apply {
                     addAll(keySet)
                     add(url)
@@ -269,9 +274,9 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                 val currentFavoriteUrlList = getFavoriteUrlList()
                 val updatedFavoriteList = ArrayList<IListItem>()
 
-                if (this::newsRepository.isInitialized) {
+                if (this::repository.isInitialized) {
 
-                    newsRepository.getNews { list ->
+                    repository.getNews { list ->
                         if (list != null) {
                             list.forEach {
                                 if (currentFavoriteUrlList.contains(it.newsUrl)) {
@@ -307,9 +312,9 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             Toast.makeText(this, "Browser not wound on current device", Toast.LENGTH_SHORT).show()
             ex.printStackTrace()
 
-            /* val intentWeb = Intent(this, WebViewActivity::class.java) // для работы необходим установленный браузер
+             val intentWeb = Intent(this, WebViewActivity::class.java) // для работы необходим установленный браузер
              intentWeb.putExtra("url", url)
-             startActivity(intentWeb)*/
+             startActivity(intentWeb)
         }
     }
 
@@ -317,6 +322,3 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         return sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
     }
 }
-
-
-
