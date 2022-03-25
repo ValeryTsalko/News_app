@@ -2,7 +2,6 @@ package com.example.myweatherapp.repository
 
 import android.util.Log
 import com.example.myweatherapp.BuildConfig
-import com.example.myweatherapp.enums.NewsType
 import com.example.myweatherapp.interfaces.RetrofitServices
 import com.example.myweatherapp.models.NewsModel
 import com.example.myweatherapp.models.NewsRoot
@@ -13,6 +12,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
+import java.time.OffsetDateTime
 
 class NewsRepository {
 
@@ -22,7 +22,6 @@ class NewsRepository {
 
     private val retrofitService = retrofitClient.create(RetrofitServices::class.java)
 
-
     fun getSource(category: String? = null, callback: (List<SourceModel>?) -> Unit) {
         val call = retrofitService.getSourceList(
             apiKey = BuildConfig.API_KEY,
@@ -30,11 +29,11 @@ class NewsRepository {
             category = category
         )
 
-        call.enqueue(object : Callback<SourceRoot>{
+        call.enqueue(object : Callback<SourceRoot> {
             override fun onResponse(call: Call<SourceRoot>, response: Response<SourceRoot>) {
-                val mappedData = response.body()?.let { root->
+                val mappedData = response.body()?.let { root ->
                     root.sources.map { source ->
-                        SourceModel (
+                        SourceModel(
                             sourceId = source.id,
                             sourceName = source.name,
                             sourceDescription = source.description,
@@ -58,11 +57,32 @@ class NewsRepository {
         })
     }
 
-    fun getNews(callback: (List<NewsModel>?) -> Unit) {
-        val call = retrofitService.getNewsList(
-            // создаем объект call и делаем его типа retrofitService и вызываем метод интерфейса getNewsList
+    /*  fun getSearchSources(searchQuery: String, callback: (List<SourceModel>?) -> Unit) {
+          val call = retrofitService.getSearchSources(
+              apiKey = BuildConfig.API_KEY,
+              searchQuery = searchQuery
+          )
+          call.enqueue(object : Callback<SourceRoot>{
+              override fun onResponse(call: Call<SourceRoot>, response: Response<SourceRoot>) {
+                  val mappedDate = response.body()?.let { root ->
+                      root.sources.map {
+
+                      }
+                  }
+              }
+
+              override fun onFailure(call: Call<SourceRoot>, t: Throwable) {
+
+              }
+
+          })
+
+      }*/
+
+    fun getNews(searchParam: String? = null, callback: (List<NewsModel>?) -> Unit) {
+        val call = retrofitService.getNewsList (
             apiKey = BuildConfig.API_KEY,
-            device = "Apple",
+            searchParam = searchParam
         )
 
         call.enqueue(object : Callback<NewsRoot> {
@@ -76,7 +96,7 @@ class NewsRepository {
                             newsDescription = article.description,
                             newsUrl = article.url,
                             newsUrlToImage = article.urlToImage,
-                            newsPublishedAt = article.publishedAt,
+                            newsPublishedAt = OffsetDateTime.parse(article.publishedAt),
                             newsContent = article.content
                         )
                     }

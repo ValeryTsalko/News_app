@@ -8,8 +8,8 @@
 
     //toolBar
     <string name="tool_bar_news">News</string>
-    <string name="tool_bar_source">Source</string>
-    <string name="tool_bar_favorite">Favorite</string>
+    <string name="tool_bar_source">Sources</string>
+    <string name="tool_bar_favorite">Favorites</string>
 
 
 </resources>

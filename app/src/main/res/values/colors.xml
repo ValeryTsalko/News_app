@@ -16,6 +16,8 @@
 
     <color name="item_color">#222325</color>
 
+    <color name="selected_Bnm">#c59450</color>
+
     <color name="text_color">#fdfefe</color>
 
     <color name="selected_BNV">#FF7903</color>

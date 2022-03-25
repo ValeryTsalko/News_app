@@ -17,6 +17,12 @@ data class Source (
     val country: String
 )
 
+data class NewsRoot(
+    val status: String,
+    val totalResults: String,
+    val articles: List<Article>
+)
+
 data class Article(
     val source: Source,
     val author: String?,
@@ -26,10 +32,4 @@ data class Article(
     val urlToImage: String,
     val publishedAt: String,
     val content: String
-)
-
-data class NewsRoot(
-    val status: String,
-    val totalResults: String,
-    val articles: List<Article>
 )

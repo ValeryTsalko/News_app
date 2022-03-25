@@ -18,4 +18,3 @@ enum class NewsType {
     @SerializedName("technology")
     TECHNOLOGY,
 }
-

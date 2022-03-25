@@ -10,4 +10,4 @@ data class SourceModel (
     val sourceCategory: String,
     val sourceLanguage: String,
     val sourceCountry: String
-): IListItem
+): IListItem()

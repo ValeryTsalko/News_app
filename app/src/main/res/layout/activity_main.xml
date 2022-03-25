@@ -13,7 +13,8 @@
             app:layout_constraintBottom_toTopOf="@id/bottomNV"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/toolbar">
+            app:layout_constraintTop_toBottomOf="@id/edit_text"
+            >
 
 
         <androidx.recyclerview.widget.RecyclerView
@@ -29,9 +30,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/item_color"
-            app:itemTextColor="@color/text_color"
-            app:itemIconTint="@color/selected_BNV"
-
+            app:itemTextColor="@color/bnm_selector"
+            app:itemIconTint="@color/bnm_selector"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -63,7 +63,8 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

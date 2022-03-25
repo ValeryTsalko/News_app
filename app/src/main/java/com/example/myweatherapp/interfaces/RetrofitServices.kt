@@ -9,7 +9,9 @@ import retrofit2.http.Query
 
 interface RetrofitServices {
     @GET("everything")
-    fun getNewsList(@Query("apiKey") apiKey: String, @Query("q") device: String): Call<NewsRoot>
+    fun getNewsList(@Query("apiKey") apiKey: String,
+                    @Query("q") searchParam: String? = null
+    ): Call<NewsRoot>
 
     @GET("top-headlines/sources")
     fun getSourceList(
@@ -18,6 +20,11 @@ interface RetrofitServices {
         @Query ("category") category: String? = null
     ): Call<SourceRoot>
 
+    @GET("top-headlines")
+    fun getSearchSources(
+        @Query("apiKey") apiKey: String,
+        @Query("q") searchQuery: String
+    ): Call<SourceRoot>
 
     // REQUEST PARAMS FOR FILTER
     @GET("top-headlines/sources")
