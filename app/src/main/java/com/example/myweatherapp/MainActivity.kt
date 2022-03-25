@@ -11,80 +11,76 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+import android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.myweatherapp.adapters.NewsAdapter
 import com.example.myweatherapp.databinding.ActivityMainBinding
 import com.example.myweatherapp.interfaces.IListItem
 import com.example.myweatherapp.interfaces.OnItemClickListener
 import com.example.myweatherapp.interfaces.OnSourceClickListener
 import com.example.myweatherapp.models.NewsModel
 import com.example.myweatherapp.repository.NewsRepository
-import java.util.ArrayList
+import java.lang.Exception
+import java.util.*
+import kotlin.collections.HashSet
 
 class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickListener {
 
-    private var sharedPreferences: SharedPreferences? = null  // обращаемся к списку сразу после создания и получаем краш
-
+    private var sharedPreferences: SharedPreferences? = null
     private lateinit var binding: ActivityMainBinding
     private val newsAdapter = NewsAdapter(this, this)
-    private lateinit var repository : NewsRepository
-    private val favoriteAdapter = FavoriteAdapter(this)
+    private lateinit var repository: NewsRepository // убрать lateinit
+
+
     private val searchAdapter by lazy {
         ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, mutableListOf()).apply {
             setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item)
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        searchAdapter.add("all sources")
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         repository = NewsRepository()
-
         binding.progressBar.root.show()
-
         sharedPreferences = getSharedPreferences("Url", MODE_PRIVATE)
 
-
-
-        repository.getNews { list ->
-            if (list != null) {
-                newsAdapter.updateUrlList(getFavoriteUrlList())
-                newsAdapter.setData(list)  // получение данные с сервера
-                Log.d("TAG", "Started")
-                binding.progressBar.root.hide()
-            } else {
-                Log.d("TAG", "Some Error")
-            }
-        }
+        loadNewsData()
 
         init()
 
+        binding.toolbar.searchNews.show()
+        binding.toolbar.searchIcon.show()
         val spinner: Spinner = findViewById(R.id.search_icon)
-
         spinner.adapter = searchAdapter
 
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val category = searchAdapter.getItem(position)
-                binding.progressBar.root.show()// в переменную category записываем позицию типа int
-                repository.getSource(category) { list ->
-                    if (list != null) {
-                        newsAdapter.setData(list)
-                        Log.d("TAG", "GETTING SORTED SOURCE DATA")
-                        binding.progressBar.root.hide()
-                    } else {
-                        Log.d("TAG", "Some ERROR")
+                val source = searchAdapter.getItem(position)
+                if (source != "all sources") {
+                    binding.progressBar.root.show()
+                    repository.getNews(source) { list ->
+                        if (list != null) {
+                            newsAdapter.setData(list)
+                            Log.d("TAG", "GETTING SORTED SOURCE DATA")
+                            binding.progressBar.root.hide()
+                        } else {
+                            Log.d("TAG", "Some ERROR")
+                        }
                     }
+                } else {
+                    loadNewsData()
                 }
             }
 
@@ -95,9 +91,10 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         binding.bottomNV.selectedItemId = R.id.item1
         binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_news)
         binding.editText.editText.hide()
+
         binding.editText.editText.setOnEditorActionListener { v, actionId, event ->
 
-            if (actionId == IME_ACTION_DONE) {
+            if (actionId == IME_ACTION_SEARCH) {
                 binding.editText.editText.hide()
             }
             false
@@ -129,29 +126,54 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                Log.d("tag", s.toString())
+                try {
+                    timer.cancel()
+                    timer = Timer()
+                    timer.schedule(object : TimerTask() {
+                        override fun run() {
+                            if (!s.isNullOrEmpty() && s.toString().length >= 3) {
+                                repository.getNews(s.toString()) { list ->
+                                    if (list != null) {
+                                        newsAdapter.updateUrlList(getFavoriteUrlList())
+                                        newsAdapter.setData(list)
+                                        Log.d("tag ", "Getting Sorted News by param")
+                                    }
+                                }
+                            } else {
+                                loadNewsData()
+                            }
+                        }
+                    }, delay
+                    )
+                } catch (ex: Exception) {
+                    Log.d("ERROR", "${ex.message}")
+                    ex.printStackTrace()
+                }
             }
 
+            private var timer: Timer = Timer()
+            private val delay = 1000L
+
             override fun afterTextChanged(s: Editable?) {
+
             }
         })
 
         binding.bottomNV.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.item1 -> {
-                    binding.toolbar.searchNews.hide()
-                    binding.toolbar.searchIcon.hide()
+                    binding.toolbar.searchNews.show()
+                    binding.toolbar.searchIcon.show()
                     binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_news)
                     loadNewsData()
                     true
                 }
                 R.id.item2 -> {
-                    binding.toolbar.searchNews.show()
-                    binding.toolbar.searchIcon.show()
+                    binding.toolbar.searchNews.hide()
+                    binding.toolbar.searchIcon.hide()
                     binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_source)
                     loadSourceData()
                     true
-
                 }
                 R.id.item3 -> {
                     binding.toolbar.searchNews.hide()
@@ -166,14 +188,26 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
     }
 
     private fun loadNewsData() {
-        binding.progressBar.root.show()
-        binding.recyclerViewNews.adapter = newsAdapter
-        return repository.getNews { list ->
+        runOnUiThread {
+            binding.progressBar.root.show()
+        }
+        return repository.getNews("news") { list ->
             if (list != null) {
+                searchAdapter.clear()
+                searchAdapter.add("all sources")
+                val spinnerList = HashSet<String>()
+                list.forEach {
+                    if (it.newsSource?.name?.isNotEmpty()) {
+                        spinnerList.add(it.newsSource?.name)
+                    }
+                }
+                searchAdapter.addAll(spinnerList)
                 newsAdapter.updateUrlList(getFavoriteUrlList())
                 newsAdapter.setData(list)
                 Log.d("TAG", "GETTING NEWS DATA")
-                binding.progressBar.root.hide()
+                runOnUiThread {
+                    binding.progressBar.root.hide()
+                }
             } else {
                 Log.d("TAG", "SOME ERROR")
             }
@@ -181,18 +215,10 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
     }
 
     private fun loadSourceData() {
-
         binding.progressBar.root.show()
-        binding.recyclerViewNews.adapter = newsAdapter
-
         return repository.getSource { list ->
             if (list != null) {
-
-                val spinnerList = list.map { it.sourceCategory }.toSet()
-                searchAdapter.clear()// не Set
                 newsAdapter.setData(list)
-                searchAdapter.addAll(spinnerList)
-
                 Log.d("TAG", "GETTING SOURCE DATA")
                 binding.progressBar.root.hide()
             } else {
@@ -203,21 +229,18 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
     private fun loadFavoriteList() {
         binding.progressBar.root.show()
-        return repository.getNews { list ->
+        return repository.getNews("news") { list ->
             if (list != null) {
-                val filteredList = mutableListOf<NewsModel>()
+                val favoriteList = mutableListOf<NewsModel>()
                 val keySet = sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
 
                 keySet.forEach { url ->
                     list.find { it.newsUrl == url }?.let {
-                        filteredList.add(it)
-
+                        favoriteList.add(it)
                     }
                 }
-
-                favoriteAdapter.setData(filteredList)
-                favoriteAdapter.updateUrlList(getFavoriteUrlList().toList())
-                binding.recyclerViewNews.adapter = favoriteAdapter
+                newsAdapter.updateUrlList(getFavoriteUrlList())
+                newsAdapter.setData(favoriteList)
                 Log.d("TAG", "GETTING NEWS DATA")
                 binding.progressBar.root.hide()
             } else {
@@ -239,7 +262,6 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         val keySet = sharedPreferences?.getStringSet(KEY_URL, emptySet())
         val mutableKeySet = mutableSetOf<String>()
 
-        Log.d("TAG", "$sharedPreferences")
         sharedPreferences?.edit()?.let { editor ->
             if (keySet.isNullOrEmpty()) {
                 editor.putStringSet(KEY_URL, setOf(url))
@@ -276,18 +298,17 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
                 if (this::repository.isInitialized) {
 
-                    repository.getNews { list ->
+                    repository.getNews("news") { list ->
                         if (list != null) {
                             list.forEach {
                                 if (currentFavoriteUrlList.contains(it.newsUrl)) {
                                     updatedFavoriteList.add(it)
                                 }
                             }
-
-                            favoriteAdapter.updateUrlList(mutableFavoriteNews.toList())
-                            favoriteAdapter.setData(updatedFavoriteList)
+                            newsAdapter.updateUrlList(mutableFavoriteNews)
+                            newsAdapter.setData(updatedFavoriteList)
                         } else {
-                            Log.d("TAG", "Some Error")
+                            Log.d("TAG", "Favorite list is empty")
                         }
                     }
                 }
@@ -312,9 +333,9 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             Toast.makeText(this, "Browser not wound on current device", Toast.LENGTH_SHORT).show()
             ex.printStackTrace()
 
-             val intentWeb = Intent(this, WebViewActivity::class.java) // для работы необходим установленный браузер
-             intentWeb.putExtra("url", url)
-             startActivity(intentWeb)
+            val intentWeb = Intent(this, WebViewActivity::class.java) // для работы необходим установленный браузер
+            intentWeb.putExtra("url", url)
+            startActivity(intentWeb)
         }
     }
 

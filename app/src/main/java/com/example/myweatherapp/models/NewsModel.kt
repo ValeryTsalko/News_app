@@ -9,8 +9,9 @@ data class NewsModel(
    val newsTitle: String,
    val newsDescription: String,
    val newsUrl: String,
-   val newsUrlToImage: String,
+   val newsUrlToImage: String?,
    val newsPublishedAt: OffsetDateTime,
    val newsContent: String,
+   val isChecked: Boolean = false
 ): IListItem()
 

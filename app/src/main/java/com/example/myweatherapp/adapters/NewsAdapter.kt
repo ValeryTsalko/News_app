@@ -1,8 +1,9 @@
-package com.example.myweatherapp
+package com.example.myweatherapp.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.myweatherapp.R
 import com.example.myweatherapp.interfaces.IListItem
 import com.example.myweatherapp.interfaces.OnItemClickListener
 import com.example.myweatherapp.interfaces.OnSourceClickListener
@@ -14,7 +15,6 @@ import com.example.myweatherapp.viewHolders.SourceHolder
 open class NewsAdapter(private val newsListener: OnItemClickListener, private val sourceListener: OnSourceClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var newsList = mutableListOf<IListItem>()
-
     var favoriteUrlList = mutableListOf<String>()
 
     fun updateUrlList (list: Set<String>){ //
@@ -25,7 +25,7 @@ open class NewsAdapter(private val newsListener: OnItemClickListener, private va
         notifyDataSetChanged()
     }
 
-    internal fun setData(items: List<IListItem>) { // метод заполянет список новыми данными
+    internal fun setData(items: List<IListItem>) {
         newsList.apply {
             clear()
             addAll(items)

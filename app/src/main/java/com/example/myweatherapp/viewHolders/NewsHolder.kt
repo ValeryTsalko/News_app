@@ -27,26 +27,24 @@ class NewsHolder(private val newsListener: OnItemClickListener, itemView: View) 
             .centerInside()
             .into(newsImage)
 
-        if (favoriteUrls.contains(news.newsUrl)) {
-            favoriteIcon.setImageResource(R.drawable.favorites_icon_filled)
+        /*if (favoriteUrls.contains(news.newsUrl)) {
+            favoriteIcon.setBackgroundResource(R.drawable.favorites_icon_filled)
         } else {
-            favoriteIcon.setImageResource(R.drawable.favorites_icon_unfilled)
-        }
+            favoriteIcon.setBackgroundResource(R.drawable.favorites_icon_unfilled)
+        }*/
+
+        favoriteIcon.isChecked = favoriteUrls.contains(news.newsUrl)
 
         favoriteIcon.setOnClickListener {
-
-            it.isSelected = !it.isSelected
+           /* it.isSelected = !it.isSelected
 
             if (it.isSelected) {
-                favoriteIcon.setImageResource(R.drawable.favorites_icon_filled)
+                favoriteIcon.setBackgroundResource(R.drawable.favorites_icon_filled)
 
             } else {
-                favoriteIcon.setImageResource(R.drawable.favorites_icon_unfilled)
-            }
-
+                favoriteIcon.setBackgroundResource(R.drawable.favorites_icon_unfilled)
+            }*/
             newsListener.onFavoriteIconClick(news.newsUrl)
-             // блягодаря тому, что мы имплементим interface у Holdera и Activity мы можем передать
-            //  данные при клике из Holdera в Activity (небольшие данные), а передаем мы url нашей новости
         }
 
     }
