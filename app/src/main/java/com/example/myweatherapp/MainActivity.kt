@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
     private var sharedPreferences: SharedPreferences? = null
     private lateinit var binding: ActivityMainBinding
     private val newsAdapter = NewsAdapter(this, this)
-    private lateinit var repository: NewsRepository // убрать lateinit
+    private  val repository = NewsRepository()
 
 
     private val searchAdapter by lazy {
@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        repository = NewsRepository()
         binding.progressBar.root.show()
         sharedPreferences = getSharedPreferences("Url", MODE_PRIVATE)
 
@@ -136,10 +135,12 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                                     if (list != null) {
                                         newsAdapter.updateUrlList(getFavoriteUrlList())
                                         newsAdapter.setData(list)
+                                        binding.editText.editText.hide()
                                         Log.d("tag ", "Getting Sorted News by param")
                                     }
                                 }
                             } else {
+                                binding.editText.editText.hide()
                                 loadNewsData()
                             }
                         }
@@ -155,30 +156,41 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             private val delay = 1000L
 
             override fun afterTextChanged(s: Editable?) {
-
             }
         })
 
         binding.bottomNV.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.item1 -> {
-                    binding.toolbar.searchNews.show()
-                    binding.toolbar.searchIcon.show()
-                    binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_news)
+                    with (binding) {
+                        editText.editText.hide()
+                        toolbar.searchNews.show()
+                        toolbar.searchIcon.show()
+                        toolbar.toolName.text = resources.getString(R.string.tool_bar_news)
+                    }
+
                     loadNewsData()
                     true
                 }
                 R.id.item2 -> {
-                    binding.toolbar.searchNews.hide()
-                    binding.toolbar.searchIcon.hide()
-                    binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_source)
+                    with (binding) {
+                        editText.editText.hide()
+                        toolbar.searchNews.hide()
+                        toolbar.searchIcon.hide()
+                        toolbar.toolName.text = resources.getString(R.string.tool_bar_source)
+                    }
+
                     loadSourceData()
                     true
                 }
                 R.id.item3 -> {
-                    binding.toolbar.searchNews.hide()
-                    binding.toolbar.searchIcon.hide()
-                    binding.toolbar.toolName.text = resources.getString(R.string.tool_bar_favorite)
+                    with (binding) {
+                        editText.editText.hide()
+                        toolbar.searchNews.hide()
+                        toolbar.searchIcon.hide()
+                        toolbar.toolName.text = resources.getString(R.string.tool_bar_favorite)
+                    }
+
                     loadFavoriteList()
                     true
                 }
@@ -214,7 +226,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         }
     }
 
-    private fun loadSourceData() {
+    private fun loadSourceData () {
         binding.progressBar.root.show()
         return repository.getSource { list ->
             if (list != null) {
@@ -296,7 +308,6 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                 val currentFavoriteUrlList = getFavoriteUrlList()
                 val updatedFavoriteList = ArrayList<IListItem>()
 
-                if (this::repository.isInitialized) {
 
                     repository.getNews("news") { list ->
                         if (list != null) {
@@ -311,7 +322,6 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                             Log.d("TAG", "Favorite list is empty")
                         }
                     }
-                }
             }
         }
     }

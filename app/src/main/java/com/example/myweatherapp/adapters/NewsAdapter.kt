@@ -12,7 +12,7 @@ import com.example.myweatherapp.models.SourceModel
 import com.example.myweatherapp.viewHolders.NewsHolder
 import com.example.myweatherapp.viewHolders.SourceHolder
 
-open class NewsAdapter(private val newsListener: OnItemClickListener, private val sourceListener: OnSourceClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+open class NewsAdapter(private val newsListener: OnItemClickListener, private val sourceListener : OnSourceClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var newsList = mutableListOf<IListItem>()
     var favoriteUrlList = mutableListOf<String>()
@@ -44,9 +44,9 @@ open class NewsAdapter(private val newsListener: OnItemClickListener, private va
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            0 -> NewsHolder(newsListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
-            1 -> SourceHolder(sourceListener, LayoutInflater.from(parent.context).inflate(R.layout.source_holder, parent, false))
-            else -> NewsHolder(newsListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
+            0 -> NewsHolder(newsListener, sourceListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
+            1 -> SourceHolder( LayoutInflater.from(parent.context).inflate(R.layout.source_holder, parent, false))
+            else -> NewsHolder(newsListener,sourceListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
         }
     }
 

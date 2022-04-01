@@ -6,11 +6,12 @@ import com.bumptech.glide.Glide
 import com.example.myweatherapp.R
 import com.example.myweatherapp.databinding.NewsHolderBinding
 import com.example.myweatherapp.interfaces.OnItemClickListener
+import com.example.myweatherapp.interfaces.OnSourceClickListener
 import com.example.myweatherapp.models.NewsModel
 import java.time.format.DateTimeFormatter
 
 
-class NewsHolder(private val newsListener: OnItemClickListener, itemView: View) : RecyclerView.ViewHolder(itemView) {
+class NewsHolder(private val newsListener: OnItemClickListener, private val sourceListener: OnSourceClickListener, itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     private val binding = NewsHolderBinding.bind(itemView)
 
@@ -27,24 +28,15 @@ class NewsHolder(private val newsListener: OnItemClickListener, itemView: View) 
             .centerInside()
             .into(newsImage)
 
-        /*if (favoriteUrls.contains(news.newsUrl)) {
-            favoriteIcon.setBackgroundResource(R.drawable.favorites_icon_filled)
-        } else {
-            favoriteIcon.setBackgroundResource(R.drawable.favorites_icon_unfilled)
-        }*/
-
         favoriteIcon.isChecked = favoriteUrls.contains(news.newsUrl)
 
         favoriteIcon.setOnClickListener {
-           /* it.isSelected = !it.isSelected
 
-            if (it.isSelected) {
-                favoriteIcon.setBackgroundResource(R.drawable.favorites_icon_filled)
-
-            } else {
-                favoriteIcon.setBackgroundResource(R.drawable.favorites_icon_unfilled)
-            }*/
             newsListener.onFavoriteIconClick(news.newsUrl)
+        }
+
+        root.setOnClickListener {
+            sourceListener.onSourceClickListener(news.newsUrl)
         }
 
     }
