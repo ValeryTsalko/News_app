@@ -109,9 +109,6 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                         if (event.action == KeyEvent.ACTION_DOWN &&
                             keyCode == KeyEvent.KEYCODE_ENTER
                         ) {
-                            binding.editText.editText.text = binding.editText.editText.text
-                            binding.editText.editText.clearFocus()
-                            binding.editText.editText.isCursorVisible = false
                             return true
                         }
                     }
@@ -136,6 +133,8 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                                         newsAdapter.updateUrlList(getFavoriteUrlList())
                                         newsAdapter.setData(list)
                                         binding.editText.editText.hide()
+                                        binding.editText.editText.clearFocus()
+                                        binding.editText.editText.isCursorVisible = false
                                         Log.d("tag ", "Getting Sorted News by param")
                                     }
                                 }
@@ -153,7 +152,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             }
 
             private var timer: Timer = Timer()
-            private val delay = 1000L
+            private val delay = 2000L
 
             override fun afterTextChanged(s: Editable?) {
             }
