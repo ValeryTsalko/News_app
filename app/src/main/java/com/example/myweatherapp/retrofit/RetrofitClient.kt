@@ -11,7 +11,7 @@ object RetrofitClient {
         if (retrofit == null) {
             retrofit = Retrofit.Builder()
                 .baseUrl(BuildConfig.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()) //Add converter factory for serialization and deserialization of objects.
+                .addConverterFactory(GsonConverterFactory.create())
                 .build()
         }
         return retrofit!!

@@ -17,7 +17,5 @@ class SourceHolder(
         sourceCategory.text = news.sourceCategory
         sourceDescription.text = news.sourceDescription
         sourceCountry.text = news.sourceCountry
-
-
     }
 }

@@ -41,7 +41,6 @@ class NewsRepository {
                             sourceCategory = source.category,
                             sourceLanguage = source.language,
                             sourceCountry = source.country
-
                         )
                     }
                 }

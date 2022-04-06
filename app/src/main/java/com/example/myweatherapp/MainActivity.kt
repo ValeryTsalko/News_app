@@ -103,7 +103,11 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
             binding.editText.editText.show()
 
-            binding.editText.editText.setOnKeyListener(object : View.OnKeyListener {
+            /**
+             * left this for later
+             * this object might be added to textWatcher
+             */
+         /*   binding.editText.editText.setOnKeyListener(object : View.OnKeyListener { //
                 override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
                     if (event != null) {
                         if (event.action == KeyEvent.ACTION_DOWN &&
@@ -114,7 +118,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                     }
                     return false
                 }
-            })
+            })*/
         }
 
         binding.editText.editText.addTextChangedListener(object : TextWatcher {
@@ -133,6 +137,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                                         newsAdapter.updateUrlList(getFavoriteUrlList())
                                         newsAdapter.setData(list)
                                         binding.editText.editText.hide()
+                                        binding.editText.editText.forceHideKeyboard()
                                         binding.editText.editText.clearFocus()
                                         binding.editText.editText.isCursorVisible = false
                                         Log.d("tag ", "Getting Sorted News by param")
@@ -152,7 +157,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             }
 
             private var timer: Timer = Timer()
-            private val delay = 2000L
+            private val delay = 1000L
 
             override fun afterTextChanged(s: Editable?) {
             }
