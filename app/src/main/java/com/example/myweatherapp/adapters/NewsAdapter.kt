@@ -12,18 +12,9 @@ import com.example.myweatherapp.models.SourceModel
 import com.example.myweatherapp.viewHolders.NewsHolder
 import com.example.myweatherapp.viewHolders.SourceHolder
 
-open class NewsAdapter(private val newsListener: OnItemClickListener, private val sourceListener : OnSourceClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class NewsAdapter(private val newsListener: OnItemClickListener, private val sourceListener : OnSourceClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var newsList = mutableListOf<IListItem>()
-    var favoriteUrlList = mutableListOf<String>()
-
-    fun updateUrlList (list: Set<String>){ //
-        favoriteUrlList.apply {
-            clear()
-            addAll(list)
-        }
-        notifyDataSetChanged()
-    }
+    private val newsList = mutableListOf<IListItem>()
 
     internal fun setData(items: List<IListItem>) {
         newsList.apply {
@@ -34,23 +25,20 @@ open class NewsAdapter(private val newsListener: OnItemClickListener, private va
     }
 
     override fun getItemViewType(position: Int): Int {
-        val item = newsList[position]
-        return when (item) {
-            is NewsModel -> 0
-            is SourceModel -> 1
-            else -> -1
+        return when (newsList[position]) {
+            is NewsModel -> NEWS_TYPE
+            is SourceModel -> SOURCE_TYPE
+            else -> NEWS_TYPE
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            0 -> NewsHolder(newsListener, sourceListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
-            1 -> SourceHolder( LayoutInflater.from(parent.context).inflate(R.layout.source_holder, parent, false))
+            NEWS_TYPE -> NewsHolder(newsListener, sourceListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
+            SOURCE_TYPE -> SourceHolder( LayoutInflater.from(parent.context).inflate(R.layout.source_holder, parent, false))
             else -> NewsHolder(newsListener,sourceListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
         }
     }
-
-
 
     override fun getItemCount(): Int {
         return newsList.size
@@ -58,8 +46,13 @@ open class NewsAdapter(private val newsListener: OnItemClickListener, private va
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is NewsHolder -> holder.bind(newsList[position] as NewsModel, favoriteUrlList)
+            is NewsHolder -> holder.bind(newsList[position] as NewsModel)
             is SourceHolder -> holder.bind(newsList[position] as SourceModel)
         }
+    }
+
+    private companion object {
+        const val NEWS_TYPE : Int = 1
+        const val SOURCE_TYPE: Int = 2
     }
 }

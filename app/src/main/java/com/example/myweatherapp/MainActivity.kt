@@ -8,9 +8,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.KeyEvent
 import android.view.View
-import android.view.inputmethod.EditorInfo.IME_ACTION_DONE
 import android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -20,23 +18,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myweatherapp.adapters.NewsAdapter
 import com.example.myweatherapp.databinding.ActivityMainBinding
-import com.example.myweatherapp.interfaces.IListItem
 import com.example.myweatherapp.interfaces.OnItemClickListener
 import com.example.myweatherapp.interfaces.OnSourceClickListener
 import com.example.myweatherapp.models.NewsModel
 import com.example.myweatherapp.repository.NewsRepository
-import java.lang.Exception
 import java.util.*
-import kotlin.collections.HashSet
 
 class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickListener {
 
     private var sharedPreferences: SharedPreferences? = null
     private lateinit var binding: ActivityMainBinding
     private val newsAdapter = NewsAdapter(this, this)
-    private  val repository = NewsRepository()
-
-
+    private val repository = NewsRepository()
     private val searchAdapter by lazy {
         ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, mutableListOf()).apply {
             setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item)
@@ -99,26 +92,26 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             false
         }
 
-        binding.toolbar.searchNews?.setOnClickListener {
+        binding.toolbar.searchNews.setOnClickListener {
 
             binding.editText.editText.show()
 
             /**
              * left this for later
-             * this object might be added to textWatcher
+             * this object might be added to the textWatcher
              */
-         /*   binding.editText.editText.setOnKeyListener(object : View.OnKeyListener { //
-                override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
-                    if (event != null) {
-                        if (event.action == KeyEvent.ACTION_DOWN &&
-                            keyCode == KeyEvent.KEYCODE_ENTER
-                        ) {
-                            return true
-                        }
-                    }
-                    return false
-                }
-            })*/
+            /*   binding.editText.editText.setOnKeyListener(object : View.OnKeyListener { //
+                   override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
+                       if (event != null) {
+                           if (event.action == KeyEvent.ACTION_DOWN &&
+                               keyCode == KeyEvent.KEYCODE_ENTER
+                           ) {
+                               return true
+                           }
+                       }
+                       return false
+                   }
+               })*/
         }
 
         binding.editText.editText.addTextChangedListener(object : TextWatcher {
@@ -134,7 +127,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                             if (!s.isNullOrEmpty() && s.toString().length >= 3) {
                                 repository.getNews(s.toString()) { list ->
                                     if (list != null) {
-                                        newsAdapter.updateUrlList(getFavoriteUrlList())
+                                        applyIsFavoriteState(list)
                                         newsAdapter.setData(list)
                                         binding.editText.editText.hide()
                                         binding.editText.editText.forceHideKeyboard()
@@ -166,7 +159,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         binding.bottomNV.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.item1 -> {
-                    with (binding) {
+                    with(binding) {
                         editText.editText.hide()
                         toolbar.searchNews.show()
                         toolbar.searchIcon.show()
@@ -177,7 +170,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                     true
                 }
                 R.id.item2 -> {
-                    with (binding) {
+                    with(binding) {
                         editText.editText.hide()
                         toolbar.searchNews.hide()
                         toolbar.searchIcon.hide()
@@ -188,7 +181,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                     true
                 }
                 R.id.item3 -> {
-                    with (binding) {
+                    with(binding) {
                         editText.editText.hide()
                         toolbar.searchNews.hide()
                         toolbar.searchIcon.hide()
@@ -213,12 +206,12 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                 searchAdapter.add("all sources")
                 val spinnerList = HashSet<String>()
                 list.forEach {
-                    if (it.newsSource?.name?.isNotEmpty()) {
-                        spinnerList.add(it.newsSource?.name)
+                    if (it.newsSource.name.isNotEmpty()) {
+                        spinnerList.add(it.newsSource.name)
                     }
                 }
                 searchAdapter.addAll(spinnerList)
-                newsAdapter.updateUrlList(getFavoriteUrlList())
+                applyIsFavoriteState(list)
                 newsAdapter.setData(list)
                 Log.d("TAG", "GETTING NEWS DATA")
                 runOnUiThread {
@@ -230,7 +223,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         }
     }
 
-    private fun loadSourceData () {
+    private fun loadSourceData() {
         binding.progressBar.root.show()
         return repository.getSource { list ->
             if (list != null) {
@@ -245,18 +238,17 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
     private fun loadFavoriteList() {
         binding.progressBar.root.show()
+
         return repository.getNews("news") { list ->
             if (list != null) {
-                val favoriteList = mutableListOf<NewsModel>()
-                val keySet = sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
-
-                keySet.forEach { url ->
-                    list.find { it.newsUrl == url }?.let {
-                        favoriteList.add(it)
+                val favoriteKeyUrls = sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
+                val filteredData = list.filter { item ->
+                    favoriteKeyUrls.any {
+                        item.newsUrl == it
                     }
                 }
-                newsAdapter.updateUrlList(getFavoriteUrlList())
-                newsAdapter.setData(favoriteList)
+                newsAdapter.setData(filteredData) // передаем в адаптер отфильстрованный список новостей
+                applyIsFavoriteState(list)        // меняем стейт чекбокса у новостей
                 Log.d("TAG", "GETTING NEWS DATA")
                 binding.progressBar.root.hide()
             } else {
@@ -306,32 +298,23 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                         addAll(favoriteKeyUrls)
                         remove(url)
                     }
-                    sharedPreferences?.edit()?.putStringSet(KEY_URL, mutableFavoriteNews)
-                }?.apply()
+                    editor.putStringSet(KEY_URL, mutableFavoriteNews).apply()
+                }
 
-                val currentFavoriteUrlList = getFavoriteUrlList()
-                val updatedFavoriteList = ArrayList<IListItem>()
-
-
-                    repository.getNews("news") { list ->
-                        if (list != null) {
-                            list.forEach {
-                                if (currentFavoriteUrlList.contains(it.newsUrl)) {
-                                    updatedFavoriteList.add(it)
-                                }
+                repository.getNews("news") { list ->
+                    if (list != null) {
+                        val filteredData = list.filter { item ->
+                            mutableFavoriteNews.any {
+                                item.newsUrl == it
                             }
-                            newsAdapter.updateUrlList(mutableFavoriteNews)
-                            newsAdapter.setData(updatedFavoriteList)
-                        } else {
-                            Log.d("TAG", "Favorite list is empty")
                         }
+                        newsAdapter.setData(filteredData)
+                    } else {
+                        Log.d("TAG", "Favorite list is empty")
                     }
+                }
             }
         }
-    }
-
-    companion object {
-        const val KEY_URL = "KEY_URL"
     }
 
     override fun onSourceClickListener(url: String) {
@@ -353,7 +336,17 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         }
     }
 
-    fun getFavoriteUrlList(): Set<String> {
-        return sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
+    private fun applyIsFavoriteState(list: List<NewsModel>) {
+        val favoriteState = sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
+        list.forEach { item ->
+            item.isFavorite =
+                favoriteState.any { url ->
+                    url == item.newsUrl
+                }
+        }
+    }
+
+    companion object {
+        private const val KEY_URL = "KEY_URL"
     }
 }

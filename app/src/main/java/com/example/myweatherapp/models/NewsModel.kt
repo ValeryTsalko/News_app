@@ -12,6 +12,6 @@ data class NewsModel(
    val newsUrlToImage: String?,
    val newsPublishedAt: OffsetDateTime,
    val newsContent: String,
-   val isChecked: Boolean = false
+   var isFavorite: Boolean = false
 ): IListItem()
 

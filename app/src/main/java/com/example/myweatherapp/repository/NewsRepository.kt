@@ -56,30 +56,8 @@ class NewsRepository {
         })
     }
 
-    /*  fun getSearchSources(searchQuery: String, callback: (List<SourceModel>?) -> Unit) {
-          val call = retrofitService.getSearchSources(
-              apiKey = BuildConfig.API_KEY,
-              searchQuery = searchQuery
-          )
-          call.enqueue(object : Callback<SourceRoot>{
-              override fun onResponse(call: Call<SourceRoot>, response: Response<SourceRoot>) {
-                  val mappedDate = response.body()?.let { root ->
-                      root.sources.map {
-
-                      }
-                  }
-              }
-
-              override fun onFailure(call: Call<SourceRoot>, t: Throwable) {
-
-              }
-
-          })
-
-      }*/
-
     fun getNews(searchParam: String? = null, callback: (List<NewsModel>?) -> Unit) {
-        val call = retrofitService.getNewsList (
+        val call = retrofitService.getNewsList(
             apiKey = BuildConfig.API_KEY,
             searchParam = searchParam
         )
