@@ -16,7 +16,6 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.myweatherapp.adapters.NewsAdapter
 import com.example.myweatherapp.databinding.ActivityMainBinding
 import com.example.myweatherapp.interfaces.OnItemClickListener
 import com.example.myweatherapp.interfaces.OnSourceClickListener

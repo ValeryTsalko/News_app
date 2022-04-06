@@ -1,9 +1,8 @@
-package com.example.myweatherapp.adapters
+package com.example.myweatherapp
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myweatherapp.R
 import com.example.myweatherapp.interfaces.IListItem
 import com.example.myweatherapp.interfaces.OnItemClickListener
 import com.example.myweatherapp.interfaces.OnSourceClickListener
@@ -12,7 +11,8 @@ import com.example.myweatherapp.models.SourceModel
 import com.example.myweatherapp.viewHolders.NewsHolder
 import com.example.myweatherapp.viewHolders.SourceHolder
 
-class NewsAdapter(private val newsListener: OnItemClickListener, private val sourceListener : OnSourceClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class NewsAdapter(private val newsListener: OnItemClickListener, private val sourceListener: OnSourceClickListener) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val newsList = mutableListOf<IListItem>()
 
@@ -34,9 +34,13 @@ class NewsAdapter(private val newsListener: OnItemClickListener, private val sou
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            NEWS_TYPE -> NewsHolder(newsListener, sourceListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
-            SOURCE_TYPE -> SourceHolder( LayoutInflater.from(parent.context).inflate(R.layout.source_holder, parent, false))
-            else -> NewsHolder(newsListener,sourceListener, LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
+            NEWS_TYPE -> NewsHolder(newsListener,
+                sourceListener,
+                LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
+            SOURCE_TYPE -> SourceHolder(LayoutInflater.from(parent.context).inflate(R.layout.source_holder, parent, false))
+            else -> NewsHolder(newsListener,
+                sourceListener,
+                LayoutInflater.from(parent.context).inflate(R.layout.news_holder, parent, false))
         }
     }
 
@@ -52,7 +56,7 @@ class NewsAdapter(private val newsListener: OnItemClickListener, private val sou
     }
 
     private companion object {
-        const val NEWS_TYPE : Int = 1
+        const val NEWS_TYPE: Int = 1
         const val SOURCE_TYPE: Int = 2
     }
 }
