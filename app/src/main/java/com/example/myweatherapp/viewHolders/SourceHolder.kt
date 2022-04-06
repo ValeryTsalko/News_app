@@ -7,7 +7,6 @@ import com.example.myweatherapp.interfaces.OnSourceClickListener
 import com.example.myweatherapp.models.SourceModel
 
 class SourceHolder(
-    private val sourceListener: OnSourceClickListener,
     itemView: View
 ) : RecyclerView.ViewHolder(itemView) {
 
@@ -18,9 +17,5 @@ class SourceHolder(
         sourceCategory.text = news.sourceCategory
         sourceDescription.text = news.sourceDescription
         sourceCountry.text = news.sourceCountry
-
-        root.setOnClickListener {
-            sourceListener.onSourceClickListener(news.sourceUrl)
-        }
     }
 }
