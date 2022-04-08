@@ -2,7 +2,6 @@ package com.example.myweatherapp
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -15,20 +14,22 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myweatherapp.databinding.ActivityMainBinding
 import com.example.myweatherapp.interfaces.OnItemClickListener
 import com.example.myweatherapp.interfaces.OnSourceClickListener
-import com.example.myweatherapp.models.NewsModel
 import com.example.myweatherapp.repository.NewsRepository
+import com.example.myweatherapp.viewmodel.MainViewModel
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickListener {
 
-    private var sharedPreferences: SharedPreferences? = null
+    private lateinit var mViewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
-    private val newsAdapter = NewsAdapter(this, this)
     private val repository = NewsRepository()
+    private val newsAdapter = NewsAdapter(this, this)
     private val searchAdapter by lazy {
         ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, mutableListOf()).apply {
             setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item)
@@ -36,22 +37,43 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        mViewModel = MainViewModel(application)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        searchAdapter.add("all sources")
+        mViewModel.getProgressVisibility.observe(this) { isProgressBarVisible ->
+            binding.progressBar.progressBar.isVisible = isProgressBarVisible
+        }
+
+        mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+
+        mViewModel.getNewsData.observe(this) { data ->
+            newsAdapter.setData(data)
+        }
+
+        mViewModel.loadNewsData()
+
+
+        mViewModel.getSourceData.observe(this) { data ->
+            newsAdapter.setData(data)
+        }
+
+        mViewModel.getFavoriteData.observe(this) { data ->
+            newsAdapter.setData(data)
+        }
+
+        mViewModel.getSpinnerItems.observe(this) { data ->
+            searchAdapter.addAll(data)
+        }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.progressBar.root.show()
-        sharedPreferences = getSharedPreferences("Url", MODE_PRIVATE)
 
-        loadNewsData()
+        binding.toolbar.searchIcon.show()
+        binding.toolbar.searchNews.show()
 
         init()
 
-        binding.toolbar.searchNews.show()
-        binding.toolbar.searchIcon.show()
         val spinner: Spinner = findViewById(R.id.search_icon)
         spinner.adapter = searchAdapter
 
@@ -71,7 +93,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                         }
                     }
                 } else {
-                    loadNewsData()
+                    mViewModel.loadNewsData()
                 }
             }
 
@@ -126,7 +148,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                             if (!s.isNullOrEmpty() && s.toString().length >= 3) {
                                 repository.getNews(s.toString()) { list ->
                                     if (list != null) {
-                                        applyIsFavoriteState(list)
+                                        mViewModel.applyIsFavoriteState(list)
                                         newsAdapter.setData(list)
                                         binding.editText.editText.hide()
                                         binding.editText.editText.forceHideKeyboard()
@@ -137,7 +159,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                                 }
                             } else {
                                 binding.editText.editText.hide()
-                                loadNewsData()
+                                mViewModel.loadNewsData()
                             }
                         }
                     }, delay
@@ -165,7 +187,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                         toolbar.toolName.text = resources.getString(R.string.tool_bar_news)
                     }
 
-                    loadNewsData()
+                    mViewModel.loadNewsData()
                     true
                 }
                 R.id.item2 -> {
@@ -176,7 +198,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                         toolbar.toolName.text = resources.getString(R.string.tool_bar_source)
                     }
 
-                    loadSourceData()
+                    mViewModel.loadSourceData()
                     true
                 }
                 R.id.item3 -> {
@@ -186,8 +208,8 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
                         toolbar.searchIcon.hide()
                         toolbar.toolName.text = resources.getString(R.string.tool_bar_favorite)
                     }
-
-                    loadFavoriteList()
+                    searchAdapter.clear()
+                    mViewModel.loadFavoriteData()
                     true
                 }
                 else -> false
@@ -195,91 +217,8 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         }
     }
 
-    private fun loadNewsData() {
-        runOnUiThread {
-            binding.progressBar.root.show()
-        }
-        return repository.getNews("news") { list ->
-            if (list != null) {
-                searchAdapter.clear()
-                searchAdapter.add("all sources")
-                val spinnerList = HashSet<String>()
-                list.forEach {
-                    if (it.newsSource.name.isNotEmpty()) {
-                        spinnerList.add(it.newsSource.name)
-                    }
-                }
-                searchAdapter.addAll(spinnerList)
-                applyIsFavoriteState(list)
-                newsAdapter.setData(list)
-                Log.d("TAG", "GETTING NEWS DATA")
-                runOnUiThread {
-                    binding.progressBar.root.hide()
-                }
-            } else {
-                Log.d("TAG", "SOME ERROR")
-            }
-        }
-    }
-
-    private fun loadSourceData() {
-        binding.progressBar.root.show()
-        return repository.getSource { list ->
-            if (list != null) {
-                newsAdapter.setData(list)
-                Log.d("TAG", "GETTING SOURCE DATA")
-                binding.progressBar.root.hide()
-            } else {
-                Log.d("TAG", "Some ERROR")
-            }
-        }
-    }
-
-    private fun loadFavoriteList() {
-        binding.progressBar.root.show()
-
-        return repository.getNews("news") { list ->
-            if (list != null) {
-                val favoriteKeyUrls = sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
-                val filteredData = list.filter { item ->
-                    favoriteKeyUrls.any {
-                        item.newsUrl == it
-                    }
-                }
-                newsAdapter.setData(filteredData) // передаем в адаптер отфильстрованный список новостей
-                applyIsFavoriteState(list)        // меняем стейт чекбокса у новостей
-                Log.d("TAG", "GETTING NEWS DATA")
-                binding.progressBar.root.hide()
-            } else {
-                Log.d("TAG", "SOME ERROR")
-            }
-        }
-    }
-
-    private fun init() {
-        binding.apply {
-            recyclerViewNews.layoutManager = LinearLayoutManager(this@MainActivity)
-            recyclerViewNews.adapter = newsAdapter
-            Log.d("TAG", "ADAPTER STARTED")
-        }
-    }
-
     override fun onIconClick(url: String) {
-
-        val keySet = sharedPreferences?.getStringSet(KEY_URL, emptySet())
-        val mutableKeySet = mutableSetOf<String>()
-
-        sharedPreferences?.edit()?.let { editor ->
-            if (keySet.isNullOrEmpty()) {
-                editor.putStringSet(KEY_URL, setOf(url))
-            } else {
-                mutableKeySet.apply {
-                    addAll(keySet)
-                    add(url)
-                }
-                editor.putStringSet(KEY_URL, mutableKeySet)
-            }
-        }?.apply()
+        mViewModel.addNewsToFavoriteList(url)
     }
 
     override fun onFavoriteIconClick(url: String) {
@@ -289,29 +228,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
             }
 
             R.id.item3 -> {
-                val favoriteKeyUrls = sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
-                val mutableFavoriteNews = mutableSetOf<String>()
-
-                sharedPreferences?.edit()?.let { editor ->
-                    mutableFavoriteNews.apply {
-                        addAll(favoriteKeyUrls)
-                        remove(url)
-                    }
-                    editor.putStringSet(KEY_URL, mutableFavoriteNews).apply()
-                }
-
-                repository.getNews("news") { list ->
-                    if (list != null) {
-                        val filteredData = list.filter { item ->
-                            mutableFavoriteNews.any {
-                                item.newsUrl == it
-                            }
-                        }
-                        newsAdapter.setData(filteredData)
-                    } else {
-                        Log.d("TAG", "Favorite list is empty")
-                    }
-                }
+                mViewModel.deleteNewsFromFavoriteList(url)
             }
         }
     }
@@ -335,17 +252,11 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         }
     }
 
-    private fun applyIsFavoriteState(list: List<NewsModel>) {
-        val favoriteState = sharedPreferences?.getStringSet(KEY_URL, emptySet()) ?: emptySet()
-        list.forEach { item ->
-            item.isFavorite =
-                favoriteState.any { url ->
-                    url == item.newsUrl
-                }
+    private fun init() {
+        binding.apply {
+            recyclerViewNews.layoutManager = LinearLayoutManager(this@MainActivity)
+            recyclerViewNews.adapter = newsAdapter
+            Log.d("TAG", "ADAPTER STARTED")
         }
-    }
-
-    companion object {
-        private const val KEY_URL = "KEY_URL"
     }
 }
