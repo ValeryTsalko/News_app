@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
         mViewModel.getSpinnerItems.observe(this) { data ->
             searchAdapter.addAll(data)
         }
+        mViewModel.loadSpinnerData()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
