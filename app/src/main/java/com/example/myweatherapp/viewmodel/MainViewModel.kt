@@ -20,30 +20,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val progressVisibilityLiveData = MutableLiveData<Boolean>()
     internal val getProgressVisibility = progressVisibilityLiveData
 
-    private val newsData = MutableLiveData<List<IListItem>>()
-    internal val getNewsData = newsData
-
-    private val sourceData = MutableLiveData<List<IListItem>>()
-    internal val getSourceData = sourceData
-
-    private val favoriteData = MutableLiveData<List<IListItem>>()
-    internal val getFavoriteData = favoriteData
+    private val newListOfData = MutableLiveData<List<IListItem>>()
+    internal val getNewsListOfData = newListOfData
 
     private var spinnerItemsMutableLiveData = MutableLiveData<Set<String>>()
     internal var getSpinnerItems = spinnerItemsMutableLiveData
 
     fun loadSpinnerData() {
-        val spinnerList = HashSet<String>()
+        val spinnerList = LinkedHashSet<String>()
         spinnerList.add("all news")
         return repository.getNews("news") { list ->
-            if (list!=null){
-                list.forEach {
-                    if (it.newsSource.name.isNotEmpty()) {
-                        spinnerList.add(it.newsSource.name)
-                        spinnerItemsMutableLiveData.postValue(spinnerList)
-                    }
+            list?.forEach {
+                if (it.newsSource.name.isNotEmpty()) {
+                    spinnerList.add(it.newsSource.name)
+                    spinnerItemsMutableLiveData.postValue(spinnerList)
                 }
-                progressVisibilityLiveData.postValue(false)
             }
         }
     }
@@ -52,11 +43,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         progressVisibilityLiveData.postValue(true)
         return repository.getNews("news") { list ->
             if (list != null) {
-                newsData.postValue(list)
+                newListOfData.postValue(list)
                 applyIsFavoriteState(list)
                 Log.d("TAG", "GETTING NEWS DATA")
             } else {
-                Log.d("TAG", "SOME ERROR")
+                Log.d("TAG", "IMPOSSIBLE TO GET NEWS DATA")
                 progressVisibilityLiveData.postValue(false)
             }
         }
@@ -66,11 +57,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         progressVisibilityLiveData.postValue(true)
         return repository.getSource { list ->
             if (list != null) {
-                newsData.postValue(list)
+                newListOfData.postValue(list)
                 Log.d("TAG", "GETTING SOURCE DATA")
                 progressVisibilityLiveData.postValue(false)
             } else {
-                Log.d("TAG", "Some ERROR")
+                Log.d("TAG", "IMPOSSIBLE TO GET SOURCE NEWS DATA")
             }
         }
     }
@@ -86,11 +77,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 }
                 applyIsFavoriteState(list)
-                favoriteData.postValue(filteredData)
-                Log.d("TAG", "GETTING NEWS DATA")
+                newListOfData.postValue(filteredData)
+                Log.d("TAG", "GETTING FAVORITE NEWS DATA")
                 progressVisibilityLiveData.postValue(false)
             } else {
-                Log.d("TAG", "SOME ERROR")
+                Log.d("TAG", "IMPOSSIBLE TO GET FAVORITE NEWS DATA")
             }
         }
     }
@@ -106,7 +97,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     internal fun addNewsToFavoriteList(url: String) {
-        val prefsKeys = sharedPreferences.getStringSet(KEY_URL, emptySet())
+        val prefsKeys = getCashedKeys()
         val mutableKeySet = mutableSetOf<String>()
 
         sharedPreferences.edit()?.let { editor ->
@@ -124,13 +115,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     internal fun deleteNewsFromFavoriteList(url: String) {
-        val prefsKeys = sharedPreferences.getStringSet(KEY_URL, emptySet()) ?: emptySet()
         val mutableFavoriteNews = mutableSetOf<String>()
 
         sharedPreferences.edit()?.let { editor ->
             mutableFavoriteNews.apply {
-                addAll(prefsKeys)
+                addAll(getCashedKeys())
                 remove(url)
+                Log.d("TAG", "DELETING NEWS FROM FAVORITE LIST")
             }
             editor.putStringSet(KEY_URL, mutableFavoriteNews).apply()
         }
@@ -143,9 +134,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 }
                 applyIsFavoriteState(filteredData)
-                newsData.postValue(filteredData)
+                newListOfData.postValue(filteredData)
             } else {
-                Log.d("TAG", "Favorite list is empty")
+                Log.d("TAG", "FAVORITE LIST IS EMPTY")
             }
         }
     }
@@ -154,4 +145,5 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         private const val KEY_URL = "KEY_URL"
     }
 
+    private fun getCashedKeys() : Set<String> = sharedPreferences.getStringSet(KEY_URL, emptySet()) ?: emptySet()
 }

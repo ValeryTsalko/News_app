@@ -1,5 +1,6 @@
 package com.example.myweatherapp
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -47,20 +48,11 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, OnSourceClickList
 
         mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
-        mViewModel.getNewsData.observe(this) { data ->
+        mViewModel.getNewsListOfData.observe(this) { data ->
             newsAdapter.setData(data)
         }
 
         mViewModel.loadNewsData()
-
-
-        mViewModel.getSourceData.observe(this) { data ->
-            newsAdapter.setData(data)
-        }
-
-        mViewModel.getFavoriteData.observe(this) { data ->
-            newsAdapter.setData(data)
-        }
 
         mViewModel.getSpinnerItems.observe(this) { data ->
             searchAdapter.addAll(data)
